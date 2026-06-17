@@ -1,17 +1,31 @@
-kind = "design"
-previewPath = "/__mockup"
-title = "Canvas"
+kind = "web"
+previewPath = "/"
+title = "موقع حجز أعراس"
 version = "1.0.0"
-id = "XegfDyZt7HqfW2Bb8Ghoy"
+id = "artifacts/wedding-booking"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
 
 [[services]]
-localPort = 8081
-name = "Component Preview Server"
-paths = ["/__mockup"]
-
-[services.env]
-PORT = "8081"
-BASE_PATH = "/__mockup"
+name = "web"
+paths = [ "/" ]
+localPort = 22109
 
 [services.development]
-run = "pnpm --filter @workspace/mockup-sandbox run dev"
+run = "pnpm --filter @workspace/wedding-booking run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/wedding-booking", "run", "build" ]
+publicDir = "artifacts/wedding-booking/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22109"
+BASE_PATH = "/"

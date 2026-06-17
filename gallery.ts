@@ -1,34 +1,15 @@
-import { Router } from "express";
-import { db, galleryTable } from "@workspace/db";
-import { AddGalleryPhotoBody } from "@workspace/api-zod";
+import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod/v4";
 
-const router = Router();
-
-router.get("/gallery", async (req, res) => {
-  try {
-    const photos = await db.select().from(galleryTable).orderBy(galleryTable.createdAt);
-    res.json(photos);
-  } catch (err) {
-    req.log.error({ err }, "Failed to list gallery");
-    res.status(500).json({ error: "Internal server error" });
-  }
+export const galleryTable = pgTable("gallery", {
+  id: serial("id").primaryKey(),
+  imageUrl: text("image_url").notNull(),
+  title: text("title").notNull(),
+  category: text("category").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-router.post("/gallery", async (req, res) => {
-  const parsed = AddGalleryPhotoBody.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
-
-  try {
-    const [photo] = await db.insert(galleryTable).values({
-      imageUrl: parsed.data.imageUrl,
-      title: parsed.data.title,
-      category: parsed.data.category,
-    }).returning();
-    res.status(201).json(photo);
-  } catch (err) {
-    req.log.error({ err }, "Failed to add gallery photo");
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-export default router;
+export const insertGallerySchema = createInsertSchema(galleryTable).omit({ id: true, createdAt: true });
+export type InsertGallery = z.infer<typeof insertGallerySchema>;
+export type GalleryPhoto = typeof galleryTable.$inferSelect;
